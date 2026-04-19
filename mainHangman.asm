@@ -174,20 +174,20 @@ main:
 	li FOUND_LETTERS, 0
 	
 selectRandomWord:
-    	li $v0, 42          # random int range
-    	li $a0, 0           # random generator id
-    	li $a1, WORD_COUNT  # random number in [0, WORD_COUNT-1]
+    li $v0, 42          # random int range
+    li $a0, 0           # random generator id
+    li $a1, WORD_COUNT  # random number in [0, WORD_COUNT-1]
 	syscall
 
-    	move $t0, $a0       # t0 = random index
+    move $t0, $a0       # t0 = random index
 	sll $t0, $t0, 2     # multiply by 4 for word array offset
 
-    	la $t1, wordList
-    	add $t1, $t1, $t0
+    la $t1, wordList
+    add $t1, $t1, $t0
   	lw $t2, 0($t1)      # t2 = address of chosen word
 
-    	la $t3, currentWord
-    	sw $t2, 0($t3)
+    la $t3, currentWord
+    sw $t2, 0($t3)
 	
 	lw $t0, currentWord #load random word into $t0
 
