@@ -1,7 +1,7 @@
 # Hangman Project
 
 ## Purpose
-The purpose of recreating Hangman using MIPS is to demonstrate the ability to implement game logic using fundamental assembly concepts such as memory management, branching, macros, loops, I/O, and input validation. Writing the code for this project allows us to develop our understanding of assembly basics and how to apply it by creating a real-world application.
+The purpose of recreating Hangman using MIPS is to demonstrate the ability to implement game logic using fundamental assembly concepts such as memory management, branching, directives, macros, loops, I/O, and input validation. Writing the code for this project allows us to develop our understanding of assembly basics and how to apply it to a real-world application.
 
 ## Running the Project
 1. Launch [MARS](https://dpetersanderson.github.io/).
