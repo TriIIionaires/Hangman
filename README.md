@@ -5,11 +5,9 @@ The purpose of recreating Hangman using MIPS is to demonstrate the ability to im
 
 ## Running the Project
 1. Launch [MARS](https://dpetersanderson.github.io/).
-2. Import `mainHangman.asm` and `randomWord.asm` into their own directory.
-3. Enable Settings → Assemble all files in directory.
-4. Open `mainHangman.asm`.
-5. Click **Assemble**.
-6. Click **Run**.
+2. Import `mainHangman.asm` into the directory.
+3. Click **Assemble**.
+4. Click **Run**.
 
 ## How to Play Hangman
 - Enter one letter at a time.
