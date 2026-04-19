@@ -40,7 +40,7 @@ enterLetter: .asciiz "Enter a letter: "
 usedMessage: .asciiz "Used letters: "
 invalidMessage: .asciiz "Invalid input. Only letters are allowed."
 winMessage: .asciiz "Hangman survived. You win!"
-loseMessage: .asciiz "Hangman died. You lose."
+loseMessage: .asciiz "Hangman died. You lose. The word was "
 newLine: .asciiz "\n"
 separator: .asciiz "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
 
@@ -177,14 +177,14 @@ selectRandomWord:
     	li $v0, 42          # random int range
     	li $a0, 0           # random generator id
     	li $a1, WORD_COUNT  # random number in [0, WORD_COUNT-1]
-	    syscall
+	syscall
 
     	move $t0, $a0       # t0 = random index
-	    sll $t0, $t0, 2     # multiply by 4 for word array offset
+	sll $t0, $t0, 2     # multiply by 4 for word array offset
 
     	la $t1, wordList
     	add $t1, $t1, $t0
-  	  lw $t2, 0($t1)      # t2 = address of chosen word
+  	lw $t2, 0($t1)      # t2 = address of chosen word
 
     	la $t3, currentWord
     	sw $t2, 0($t3)
@@ -351,6 +351,12 @@ win:
 
 lose:
 	printLabel(loseMessage)
+	
+	lw $t0, currentWord
+	
+	li $v0, 4
+	move $a0, $t0
+	syscall
 
 exit:
 	#exit program
