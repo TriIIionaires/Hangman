@@ -1,10 +1,15 @@
-# Hangman Project README
+# Hangman Project
 
-## MARS Instructions
-1. Open MARS.
-2. Import the `.asm` file.
-3. Click **Assemble**.
-4. Click **Run**.
+## Purpose
+The purpose of recreating Hangman using MIPS is to demonstrate the ability to implement game logic using fundamental assembly concepts such as memory management, branching, macros, loops, I/O, and input validation. Writing the code for this project allows us to develop our understanding of assembly basics and how to apply it by creating a real-world application.
+
+## Running the Project
+1. Launch [MARS](https://dpetersanderson.github.io/).
+2. Import `mainHangman.asm` and `randomWord.asm` into their own directory.
+3. Enable Settings → Assemble all files in directory.
+4. Open `mainHangman.asm`.
+5. Click **Assemble**.
+6. Click **Run**.
 
 ## How to Play Hangman
 - Enter one letter at a time.
@@ -12,4 +17,5 @@
 - You have 6 attempts.
 - If you guess the word, you win.
 - If you run out of attempts, you lose.
-- Guessing a correct letter does not consume an attempt
+- Guessing a correct letter does not consume an attempt.
+- Repeating a letter does not consume an attempt.
