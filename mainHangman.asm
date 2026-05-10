@@ -2,45 +2,46 @@
 #Main Program
 
 .data
-currentWord: .word 0
+hiddenAnswer: .word 0
 
-word0: .asciiz "apple"
-word1: .asciiz "grape"
-word2: .asciiz "chair"
-word3: .asciiz "tiger"
-word4: .asciiz "plane"
-word5: .asciiz "bread"
-word6: .asciiz "snake"
-word7: .asciiz "light"
-word8:  .asciiz "dog"
-word9:  .asciiz "sun"
-word10: .asciiz "book"
-word11: .asciiz "tree"
-word12: .asciiz "milk"
-word13: .asciiz "river"
-word14: .asciiz "planet"
-word15: .asciiz "house"
-word16: .asciiz "mouse"
-word17: .asciiz "bread"
-word18: .asciiz "stone"
-word19: .asciiz "chair"
-word20: .asciiz "green"
-word21: .asciiz "light"
-word22: .asciiz "train"
-word23: .asciiz "apple"
-word24: .asciiz "grape"
-word25: .asciiz "smile"
-word26: .asciiz "cloud"
-word27: .asciiz "tiger"
+answer0: .asciiz "apple"
+answer1: .asciiz "grape"
+answer2: .asciiz "chair"
+answer3: .asciiz "tiger"
+answer4: .asciiz "plane"
+answer5: .asciiz "bread"
+answer6: .asciiz "snake"
+answer7: .asciiz "light"
+answer8: .asciiz "dog"
+answer9: .asciiz "sun"
+answer10: .asciiz "book"
+answer11: .asciiz "tree"
+answer12: .asciiz "milk"
+answer13: .asciiz "river"
+answer14: .asciiz "planet"
+answer15: .asciiz "house"
+answer16: .asciiz "mouse"
+answer17: .asciiz "bread"
+answer18: .asciiz "stone"
+answer19: .asciiz "chair"
+answer20: .asciiz "green"
+answer21: .asciiz "light"
+answer22: .asciiz "train"
+answer23: .asciiz "orange juice"
+answer24: .asciiz "grape"
+answer25: .asciiz "smile"
+answer26: .asciiz "cloud"
+answer27: .asciiz "tiger"
 
-wordList: .word word0, word1, word2, word3, word4, word5, word6, word7, word8, word9, word10, word11, word12, word13, word14, word15, word16, word17, word18, word19, word20, word21, word22, word23, word24, word25, word26, word27
-.eqv WORD_COUNT 28
+answerList: .word answer0, answer1, answer2, answer3, answer4, answer5, answer6, answer7, answer8, answer9, answer10, answer11, answer12, answer13, answer14, answer15, answer16, answer17, answer18, answer19, answer20, answer21, answer22, answer23, answer24, answer25, answer26, answer27
+.eqv ANSWER_COUNT 28
 
 enterLetter: .asciiz "Enter a letter: "
 usedMessage: .asciiz "Used letters: "
 invalidMessage: .asciiz "Invalid input. Only letters are allowed."
 winMessage: .asciiz "Hangman survived. You win!"
-loseMessage: .asciiz "Hangman died. You lose. The word was "
+loseMessage: .asciiz "Hangman died. You lose. The answer was "
+period: .asciiz "."
 newLine: .asciiz "\n"
 separator: .asciiz "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
 
@@ -173,25 +174,25 @@ main:
 	li REMAINING_LETTERS, 0
 	li FOUND_LETTERS, 0
 	
-selectRandomWord:
-    li $v0, 42          # random int range
-    li $a0, 0           # random generator id
-    li $a1, WORD_COUNT  # random number in [0, WORD_COUNT-1]
+selectRandomAnswer:
+	li $v0, 42          # random int range
+	li $a0, 0           # random generator id
+	li $a1, ANSWER_COUNT  # random number in [0, ANSWER_COUNT-1]
 	syscall
 
-    move $t0, $a0       # t0 = random index
-	sll $t0, $t0, 2     # multiply by 4 for word array offset
+	move $t0, $a0       # t0 = random index
+	sll $t0, $t0, 2     # multiply by 4 for answer array offset
 
-    la $t1, wordList
-    add $t1, $t1, $t0
-  	lw $t2, 0($t1)      # t2 = address of chosen word
+	la $t1, answerList
+	add $t1, $t1, $t0
+  	lw $t2, 0($t1)      # t2 = address of chosen answer
 
-    la $t3, currentWord
-    sw $t2, 0($t3)
+	la $t3, hiddenAnswer
+	sw $t2, 0($t3)
 	
-	lw $t0, currentWord #load random word into $t0
+	lw $t0, hiddenAnswer #load random answer into $t0
 
-loopWord:
+countLetters:
 	lb $t1, 0($t0) #load byte in $t0 into $t1
 	
 	beq $t1, $zero, initFields #if $t1 is 0, jump to initFields
@@ -200,33 +201,42 @@ loopWord:
 	addi TOTAL_LETTERS, TOTAL_LETTERS, 1 #increment TOTAL_LETTERS
 	addi $t0, $t0, 1 #increment $t0 to next byte
 
-	j loopWord
+	j countLetters
 
 initFields:
 	#allocate data that is TOTAL_LETTERS bytes
 	li $v0, 9
 	move $a0, TOTAL_LETTERS
 	syscall
-	
 	move FOUND_LETTERS, $v0 #store address of allocated data in FOUND_LETTERS
 	move REMAINING_LETTERS, TOTAL_LETTERS #copy TOTAL_LETTERS into REMAINING_LETTERS
 	
 	move $t0, FOUND_LETTERS #iterator for FOUND_LETTERS
 	move $t3, TOTAL_LETTERS #counter for loop condition
+	lw $t4, hiddenAnswer
 
-loopFound:
-	lb $t1, 0($t0) #load byte in $t0 into $t1
-	
+loopFoundLetters:
+	lb $t1, 0($t4)
+		
 	beq $t3, $zero, printStart #if $t3 is 0, jump to printStart
+	beq $t1, 32, showLetter #if $t1 is a space, jump to showLetter
 	
-	#if not, $t1 is a character
+	#if not, $t1 is a letter
 	li $t2, '_'
-	sb $t2, 0($t0) #store '_' into FOUND_LETTERS
+	sb $t2, 0($t0) #save '_' into FOUND_LETTERS
 	
+	j increment
+	
+showLetter:
+	sb $t1, 0($t0)
+	addi REMAINING_LETTERS, REMAINING_LETTERS, -1
+
+increment:
 	addi $t0, $t0, 1 #increment $t0 to next byte
 	addi $t3, $t3, -1 #decrement $t3
+	addi $t4, $t4, 1
 	
-	j loopFound
+	j loopFoundLetters
 
 printStart:
 	printLabel(separator)
@@ -299,7 +309,7 @@ append:
 	sb $zero, 0($t1) #store null terminator into byte
 
 verifyAnswer:
-	lw $t1, currentWord
+	lw $t1, hiddenAnswer
 	move $t2, FOUND_LETTERS #iterator for FOUND_LETTERS
 	move $t3, TOTAL_LETTERS #counter for loop condition
 	li $t4, 0 #letter found = 1, not found = 0
@@ -312,7 +322,7 @@ loop:
 	bne $t6, '_', updateLoop #if $t6 is not '_', jump to updateLoop
 	#if not, $t6 is '_'
 
-	lb $t5, 0($t1) #load letter in $t1 (currentWord) into $t5
+	lb $t5, 0($t1) #load letter in $t1 (hiddenAnswer) into $t5
 	beq $t0, $t5, reveal #if $t0 is equal to $t5, jump to reveal
 	#if not, letters do not match
 
@@ -346,17 +356,19 @@ printOutput:
 
 win:
 	printLabel(winMessage)
-	
 	j exit
 
 lose:
 	printLabel(loseMessage)
 	
-	lw $t0, currentWord
+	lw $t0, hiddenAnswer
 	
+	#print the hidden answer
 	li $v0, 4
 	move $a0, $t0
 	syscall
+	
+	printLabel(period)
 
 exit:
 	#exit program
