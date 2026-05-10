@@ -60,6 +60,9 @@ hang6: .asciiz " +---+\n |   |\n O   |\n/|\\  |\n/ \\  |\n     |\n=======\n"
 .eqv REMAINING_LETTERS 	$s2
 .eqv FOUND_LETTERS 	$s3 #contains ASCII chars (in decimal)
 
+playAgainMessage: .asciiz "\nPlay again? (y/n): "
+invalidPlayAgainMessage: .asciiz "Invalid input. Enter y or n."
+
 .macro printLabel(%label)
 	#print value in %label
 	li $v0, 4
@@ -173,7 +176,18 @@ main:
 	li TOTAL_LETTERS, 0
 	li REMAINING_LETTERS, 0
 	li FOUND_LETTERS, 0
-	
+
+	#clear used letters for a new game
+	la $t0, usedLetters
+	li $t1, 26
+
+clearUsedLetters:
+	beq $t1, $zero, selectRandomAnswer
+	sb $zero, 0($t0)
+	addi $t0, $t0, 1
+	addi $t1, $t1, -1
+	j clearUsedLetters
+
 selectRandomAnswer:
 	li $v0, 42          # random int range
 	li $a0, 0           # random generator id
@@ -356,7 +370,8 @@ printOutput:
 
 win:
 	printLabel(winMessage)
-	j exit
+	printLabel(newLine)
+	j askPlayAgain
 
 lose:
 	printLabel(loseMessage)
@@ -369,6 +384,31 @@ lose:
 	syscall
 	
 	printLabel(period)
+	printLabel(newLine)
+	j askPlayAgain
+
+askPlayAgain:
+	printLabel(playAgainMessage)
+
+	#get y/n from player
+	li $v0, 12
+	syscall
+	move $t0, $v0
+
+	printLabel(newLine)
+
+	#convert uppercase to lowercase if needed
+	beq $t0, 'Y', replayGame
+	beq $t0, 'y', replayGame
+	beq $t0, 'N', exit
+	beq $t0, 'n', exit
+
+	printLabel(invalidPlayAgainMessage)
+	printLabel(newLine)
+	j askPlayAgain
+
+replayGame:
+	j main
 
 exit:
 	#exit program
