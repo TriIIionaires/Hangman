@@ -6,29 +6,29 @@ hiddenAnswer: .word 0
 
 answer0: .asciiz "apple"
 answer1: .asciiz "grape"
-answer2: .asciiz "chair"
-answer3: .asciiz "tiger"
+answer2: .asciiz "water bottle"
+answer3: .asciiz "polar bear"
 answer4: .asciiz "plane"
-answer5: .asciiz "bread"
+answer5: .asciiz "white bread"
 answer6: .asciiz "snake"
 answer7: .asciiz "light"
 answer8: .asciiz "dog"
 answer9: .asciiz "sun"
 answer10: .asciiz "book"
 answer11: .asciiz "tree"
-answer12: .asciiz "milk"
+answer12: .asciiz "whole milk"
 answer13: .asciiz "river"
 answer14: .asciiz "planet"
 answer15: .asciiz "house"
 answer16: .asciiz "mouse"
-answer17: .asciiz "bread"
+answer17: .asciiz "watch"
 answer18: .asciiz "stone"
 answer19: .asciiz "chair"
 answer20: .asciiz "green"
-answer21: .asciiz "light"
-answer22: .asciiz "train"
+answer21: .asciiz "stop light"
+answer22: .asciiz "train station"
 answer23: .asciiz "orange juice"
-answer24: .asciiz "grape"
+answer24: .asciiz "pineapple"
 answer25: .asciiz "smile"
 answer26: .asciiz "cloud"
 answer27: .asciiz "tiger"
@@ -41,6 +41,8 @@ usedMessage: .asciiz "Used letters: "
 invalidMessage: .asciiz "Invalid input. Only letters are allowed."
 winMessage: .asciiz "Hangman survived. You win!"
 loseMessage: .asciiz "Hangman died. You lose. The answer was "
+playAgainMessage: .asciiz "\nPlay again? (y/n): "
+invalidPlayAgainMessage: .asciiz "Invalid input. Enter y or n."
 period: .asciiz "."
 newLine: .asciiz "\n"
 separator: .asciiz "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
@@ -59,9 +61,6 @@ hang6: .asciiz " +---+\n |   |\n O   |\n/|\\  |\n/ \\  |\n     |\n=======\n"
 .eqv TOTAL_LETTERS 	$s1
 .eqv REMAINING_LETTERS 	$s2
 .eqv FOUND_LETTERS 	$s3 #contains ASCII chars (in decimal)
-
-playAgainMessage: .asciiz "\nPlay again? (y/n): "
-invalidPlayAgainMessage: .asciiz "Invalid input. Enter y or n."
 
 .macro printLabel(%label)
 	#print value in %label
@@ -90,8 +89,8 @@ loop:
 	li $a0, ' '
 	syscall
 
-	addi $t1, $t1, 1 #increment $t1 to next byte
-	addi $t2, $t2, -1 #decrement $t2
+	addi $t1, $t1, 1 #increment $t1 (FOUND_LETTERS) to next byte
+	addi $t2, $t2, -1 #decrement loop counter
 
 	j loop
 
@@ -120,7 +119,7 @@ loop:
 	li $a0, ' '
 	syscall
 	
-	addi $t1, $t1, 1 #increment $t1 to next byte
+	addi $t1, $t1, 1 #increment $t1 (usedLetters) to next byte
 	
 	j loop
 
@@ -171,38 +170,41 @@ done:
 
 .text
 main:
-	#intialize to guarantee proper behavior
+	#initialize fields for a new game
 	li ATTEMPTS_LEFT, 6
-	li TOTAL_LETTERS, 0
-	li REMAINING_LETTERS, 0
-	li FOUND_LETTERS, 0
+	move TOTAL_LETTERS, $zero
+	move REMAINING_LETTERS, $zero
+	move FOUND_LETTERS, $zero
 
 	#clear used letters for a new game
 	la $t0, usedLetters
-	li $t1, 26
+	li $t1, 26 #loop counter for clearUsedLetters
 
 clearUsedLetters:
-	beq $t1, $zero, selectRandomAnswer
-	sb $zero, 0($t0)
-	addi $t0, $t0, 1
-	addi $t1, $t1, -1
+	beq $t1, $zero, selectRandomAnswer #if $t1 is zero, jump to selectRandomAnswer
+	
+	sb $zero, 0($t0) #save null terminator into $t0
+	
+	addi $t0, $t0, 1 #increment $t0 (usedLetters) to next byte
+	addi $t1, $t1, -1 #decrement loop counter
+	
 	j clearUsedLetters
 
 selectRandomAnswer:
-	li $v0, 42          # random int range
-	li $a0, 0           # random generator id
-	li $a1, ANSWER_COUNT  # random number in [0, ANSWER_COUNT-1]
+	li $v0, 42 #random int range
+	li $a0, 0 #random generator id
+	li $a1, ANSWER_COUNT #random number in [0, ANSWER_COUNT-1]
 	syscall
-
-	move $t0, $a0       # t0 = random index
-	sll $t0, $t0, 2     # multiply by 4 for answer array offset
+	move $t0, $a0 #t0 = random index
+	
+	sll $t0, $t0, 2 #multiply by 4 for answer array offset
 
 	la $t1, answerList
-	add $t1, $t1, $t0
-  	lw $t2, 0($t1)      # t2 = address of chosen answer
+	add $t1, $t1, $t0 
+  	lw $t2, 0($t1) #t2 = address of chosen answer
 
 	la $t3, hiddenAnswer
-	sw $t2, 0($t3)
+	sw $t2, 0($t3) #store address of chosen answer into $t3 (hiddenAnswer)
 	
 	lw $t0, hiddenAnswer #load random answer into $t0
 
@@ -213,7 +215,7 @@ countLetters:
 	
 	#if not, $t1 is a character
 	addi TOTAL_LETTERS, TOTAL_LETTERS, 1 #increment TOTAL_LETTERS
-	addi $t0, $t0, 1 #increment $t0 to next byte
+	addi $t0, $t0, 1 #increment $t0 (hiddenAnswer) to next byte
 
 	j countLetters
 
@@ -226,29 +228,29 @@ initFields:
 	move REMAINING_LETTERS, TOTAL_LETTERS #copy TOTAL_LETTERS into REMAINING_LETTERS
 	
 	move $t0, FOUND_LETTERS #iterator for FOUND_LETTERS
-	move $t3, TOTAL_LETTERS #counter for loop condition
+	move $t3, TOTAL_LETTERS #loop counter for loopFoundLetters
 	lw $t4, hiddenAnswer
 
 loopFoundLetters:
-	lb $t1, 0($t4)
+	lb $t1, 0($t4) #load letter from $t4 (hiddenAnswer) into $t1
 		
 	beq $t3, $zero, printStart #if $t3 is 0, jump to printStart
-	beq $t1, 32, showLetter #if $t1 is a space, jump to showLetter
+	beq $t1, 32, showLetter #if $t1 is 32 (space), jump to showLetter
 	
 	#if not, $t1 is a letter
 	li $t2, '_'
-	sb $t2, 0($t0) #save '_' into FOUND_LETTERS
+	sb $t2, 0($t0) #save '_' into $t0 (FOUND_LETTERS)
 	
 	j increment
 	
 showLetter:
-	sb $t1, 0($t0)
-	addi REMAINING_LETTERS, REMAINING_LETTERS, -1
+	sb $t1, 0($t0) #save space into $t0 (FOUND_LETTERS)
+	addi REMAINING_LETTERS, REMAINING_LETTERS, -1 #decrement REMAINING_LETTERS 
 
 increment:
-	addi $t0, $t0, 1 #increment $t0 to next byte
-	addi $t3, $t3, -1 #decrement $t3
-	addi $t4, $t4, 1
+	addi $t0, $t0, 1 #increment $t0 (FOUND_LETTERS) to next byte
+	addi $t3, $t3, -1 #decrement loop counter
+	addi $t4, $t4, 1 #increment $t4 (hiddenAnswer) to next byte
 	
 	j loopFoundLetters
 
@@ -260,8 +262,8 @@ printStart:
 	printUsedLetters
 	
 getInput:
-	beq ATTEMPTS_LEFT, 0, lose #if ATTEMPTS_LEFT is 0, jump to lose
-	beq REMAINING_LETTERS, 0, win #if REMAINING_LETTERS is 0, jump to win
+	beq ATTEMPTS_LEFT, $zero, lose #if ATTEMPTS_LEFT is 0, jump to lose
+	beq REMAINING_LETTERS, $zero, win #if REMAINING_LETTERS is 0, jump to win
 	
 	printLabel(enterLetter)
 	
@@ -319,14 +321,14 @@ loopUsedLetters:
 append:
 	sb $t0, 0($t1) #store $t0 into $t1 (usedLetters)
 	#guarantee next byte in $t1 is a null terminator
-	addi $t1, $t1, 1 #increment $t1 to next byte
+	addi $t1, $t1, 1 #increment $t1 (usedLetters) to next byte
 	sb $zero, 0($t1) #store null terminator into byte
 
 verifyAnswer:
 	lw $t1, hiddenAnswer
 	move $t2, FOUND_LETTERS #iterator for FOUND_LETTERS
 	move $t3, TOTAL_LETTERS #counter for loop condition
-	li $t4, 0 #letter found = 1, not found = 0
+	move $t4, $zero #letter found = 1, not found = 0
 
 loop:
 	beq $t3, $zero, validate #if $t3 is 0, jump to validate
@@ -341,9 +343,9 @@ loop:
 	#if not, letters do not match
 
 updateLoop:
-	addi $t1, $t1, 1 #increment $t1 to next byte
-	addi $t2, $t2, 1 #increment $t2 to next byte
-	addi $t3, $t3, -1 #decrement $t3
+	addi $t1, $t1, 1 #increment $t1 (hiddenAnswer) to next byte
+	addi $t2, $t2, 1 #increment $t2 (FOUND_LETTERS) to next byte
+	addi $t3, $t3, -1 #decrement loop counter
 	
 	j loop
 
@@ -385,7 +387,6 @@ lose:
 	
 	printLabel(period)
 	printLabel(newLine)
-	j askPlayAgain
 
 askPlayAgain:
 	printLabel(playAgainMessage)
@@ -405,6 +406,7 @@ askPlayAgain:
 
 	printLabel(invalidPlayAgainMessage)
 	printLabel(newLine)
+	
 	j askPlayAgain
 
 replayGame:
