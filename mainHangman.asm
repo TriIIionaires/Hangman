@@ -235,7 +235,7 @@ loopFoundLetters:
 	lb $t1, 0($t4) #load letter from $t4 (hiddenAnswer) into $t1
 		
 	beq $t3, $zero, printStart #if $t3 is 0, jump to printStart
-	beq $t1, 32, showLetter #if $t1 is 32 (space), jump to showLetter
+	beq $t1, 32, showSpace #if $t1 is 32 (space), jump to showSpace
 	
 	#if not, $t1 is a letter
 	li $t2, '_'
@@ -243,7 +243,7 @@ loopFoundLetters:
 	
 	j increment
 	
-showLetter:
+showSpace:
 	sb $t1, 0($t0) #save space into $t0 (FOUND_LETTERS)
 	addi REMAINING_LETTERS, REMAINING_LETTERS, -1 #decrement REMAINING_LETTERS 
 
